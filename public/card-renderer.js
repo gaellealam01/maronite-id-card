@@ -12,7 +12,7 @@ const FRONT_CONFIG = {
   },
   name: {
     x: 50,
-    y: 67,
+    y: 70,
     fontSize: 40,
     color: '#c9a84c',
   },
@@ -108,7 +108,7 @@ async function renderFrontCard(canvas, { photoSrc, name, idNumber }) {
 
   // 3. Member name — gold, Helvetica bold
   const n = FRONT_CONFIG.name;
-  ctx.font = `bold ${n.fontSize}px "Helvetica World", Helvetica, Arial, sans-serif`;
+  ctx.font = `bold ${n.fontSize}px "Cormorant Garamond", serif`;
   ctx.fillStyle = n.color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
@@ -116,7 +116,7 @@ async function renderFrontCard(canvas, { photoSrc, name, idNumber }) {
 
   // 4. "ID: 12345" — gold, Helvetica bold, centered between lines
   const id = FRONT_CONFIG.idNumber;
-  ctx.font = `bold ${id.fontSize}px "Helvetica World", Helvetica, Arial, sans-serif`;
+  ctx.font = `bold ${id.fontSize}px "Cormorant Garamond", serif`;
   ctx.fillStyle = id.color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
