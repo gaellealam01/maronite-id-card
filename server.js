@@ -124,6 +124,25 @@ app.get('/api/members/:id', authMiddleware('generator'), (req, res) => {
   }
 });
 
+// ─── UPDATE MEMBER PHOTO ─────────────────────────────────
+app.put('/api/members/:id/photo', authMiddleware('admin'), (req, res) => {
+  try {
+    const { photo_data } = req.body;
+    if (!photo_data) {
+      return res.status(400).json({ error: 'Photo data is required' });
+    }
+    db.updateMemberPhoto(req.params.id, photo_data);
+    const member = db.getMemberById(req.params.id);
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+    res.json(member);
+  } catch (err) {
+    console.error('Error updating member photo:', err);
+    res.status(500).json({ error: 'Failed to update photo' });
+  }
+});
+
 // ─── DELETE MEMBER ────────────────────────────────────────
 app.delete('/api/members/:id', authMiddleware('admin'), (req, res) => {
   try {

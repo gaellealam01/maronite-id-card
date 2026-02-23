@@ -57,7 +57,7 @@ function createMember(firstName, lastName, photoData) {
  * Get all members (for admin view)
  */
 function getAllMembers() {
-  return db.prepare('SELECT id, first_name, last_name, id_number, created_at FROM members ORDER BY created_at DESC').all();
+  return db.prepare('SELECT id, first_name, last_name, id_number, created_at, CASE WHEN photo_data IS NOT NULL THEN 1 ELSE 0 END AS has_photo FROM members ORDER BY created_at DESC').all();
 }
 
 /**
@@ -84,6 +84,13 @@ function createMemberWithId(firstName, lastName, idNumber, photoData) {
 }
 
 /**
+ * Update a member's photo by database id
+ */
+function updateMemberPhoto(id, photoData) {
+  return db.prepare('UPDATE members SET photo_data = ? WHERE id = ?').run(photoData, id);
+}
+
+/**
  * Get a single member by database id (primary key)
  */
 function getMemberById(id) {
@@ -103,6 +110,7 @@ module.exports = {
   getAllMembers,
   getAllMembersForExport,
   getMemberById,
+  updateMemberPhoto,
   deleteMember,
   generateUniqueId
 };

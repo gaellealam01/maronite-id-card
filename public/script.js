@@ -7,6 +7,27 @@ let authToken = null;
 let currentRole = null;
 let currentPhotoData = null;
 
+// ─── TOAST NOTIFICATIONS ────────────────────────
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast--${type}`;
+
+  const icons = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+  };
+
+  toast.innerHTML = `${icons[type] || icons.info}<span>${message}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    toast.addEventListener('animationend', () => toast.remove());
+  }, 3500);
+}
+
 // ─── DOM ELEMENTS ───────────────────────────────
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
@@ -164,12 +185,12 @@ idForm.addEventListener('submit', async (e) => {
   const lastName = lastNameInput.value.trim();
 
   if (!firstName || !lastName) {
-    alert('Please enter both first and last name.');
+    showToast('Please enter both first and last name.', 'error');
     return;
   }
 
   if (!currentPhotoData) {
-    alert('Please upload a photo.');
+    showToast('Please upload a photo.', 'error');
     return;
   }
 
@@ -211,7 +232,7 @@ idForm.addEventListener('submit', async (e) => {
     cardPreviewArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   } catch (err) {
-    alert(err.message);
+    showToast(err.message, 'error');
   } finally {
     generateBtn.disabled = false;
     generateBtn.querySelector('span').textContent = 'Generate ID Card';
@@ -256,26 +277,76 @@ async function loadMembers() {
       const date = new Date(member.created_at).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric'
       });
+      const photoBadge = member.has_photo
+        ? '<span class="badge-photo badge-photo--yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Photo</span>'
+        : '<span class="badge-photo badge-photo--no">No photo</span>';
       tr.innerHTML = `
         <td>${index + 1}</td>
         <td>${escapeHtml(member.first_name)}</td>
         <td>${escapeHtml(member.last_name)}</td>
         <td><strong>NB: ${escapeHtml(member.id_number)}</strong></td>
+        <td>${photoBadge}</td>
         <td>${date}</td>
         <td>
-          <button class="btn-download-card" data-id="${member.id}" title="Download ID card">⬇</button>
-          <button class="btn-delete" data-id="${member.id}" title="Remove member">✕</button>
+          <div class="actions-cell">
+            <button class="action-btn btn-upload-photo" data-id="${member.id}" data-tooltip="Upload photo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </button>
+            <button class="action-btn btn-download-card" data-id="${member.id}" data-tooltip="Download card">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button class="action-btn action-btn--danger btn-delete" data-id="${member.id}" data-tooltip="Delete member">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+            <input type="file" class="photo-file-input" data-id="${member.id}" accept="image/*" hidden>
+          </div>
         </td>
       `;
       membersTbody.appendChild(tr);
     });
 
+    // Attach upload photo handlers
+    document.querySelectorAll('.btn-upload-photo').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        document.querySelector(`.photo-file-input[data-id="${id}"]`).click();
+      });
+    });
+
+    document.querySelectorAll('.photo-file-input').forEach(input => {
+      input.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const id = e.target.dataset.id;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const res = await fetch(`/api/members/${id}/photo`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+              },
+              body: JSON.stringify({ photo_data: event.target.result })
+            });
+            if (!res.ok) throw new Error('Upload failed');
+            showToast('Photo uploaded successfully!', 'success');
+            loadMembers();
+          } catch (err) {
+            showToast('Failed to upload photo: ' + err.message, 'error');
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
     // Attach download card handlers
     document.querySelectorAll('.btn-download-card').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const id = e.target.dataset.id;
-        e.target.disabled = true;
-        e.target.textContent = '...';
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
 
         try {
           const res = await fetch(`/api/members/${id}`, {
@@ -297,19 +368,19 @@ async function loadMembers() {
           const filename = `${member.first_name}-${member.last_name}`.toLowerCase();
           downloadCombinedCard(frontC, backC, `${filename}-card.png`);
         } catch (err) {
-          alert('Failed to download card: ' + err.message);
+          showToast('Failed to download card: ' + err.message, 'error');
         } finally {
-          e.target.disabled = false;
-          e.target.textContent = '⬇';
+          btn.disabled = false;
+          btn.style.opacity = '';
         }
       });
     });
 
     // Attach delete handlers
     document.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const id = e.target.dataset.id;
-        const name = e.target.closest('tr').children[1].textContent + ' ' + e.target.closest('tr').children[2].textContent;
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const name = btn.closest('tr').children[1].textContent + ' ' + btn.closest('tr').children[2].textContent;
         if (!confirm(`Remove ${name} from the list?`)) return;
         try {
           const res = await fetch(`/api/members/${id}`, {
@@ -317,9 +388,10 @@ async function loadMembers() {
             headers: { 'Authorization': `Bearer ${authToken}` }
           });
           if (!res.ok) throw new Error('Delete failed');
+          showToast(`${name} removed`, 'success');
           loadMembers();
         } catch (err) {
-          alert('Failed to remove member: ' + err.message);
+          showToast('Failed to remove member: ' + err.message, 'error');
         }
       });
     });
@@ -350,7 +422,7 @@ exportBtn.addEventListener('click', async () => {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Failed to export data: ' + err.message);
+    showToast('Failed to export data: ' + err.message, 'error');
   } finally {
     exportBtn.disabled = false;
     const svg = exportBtn.querySelector('svg');
@@ -385,7 +457,7 @@ async function uploadAsset(file, type) {
     if (!res.ok) throw new Error('Upload failed');
 
     const data = await res.json();
-    alert(`${type === 'logo' ? 'Logo' : 'QR Code'} uploaded successfully! Refreshing...`);
+    showToast(`${type === 'logo' ? 'Logo' : 'QR Code'} uploaded successfully!`, 'success');
 
     // Update preview images
     const timestamp = Date.now();
@@ -403,7 +475,7 @@ async function uploadAsset(file, type) {
       });
     }
   } catch (err) {
-    alert('Failed to upload: ' + err.message);
+    showToast('Failed to upload: ' + err.message, 'error');
   }
 }
 
@@ -450,8 +522,8 @@ if (importBtn) {
       }
 
       const data = await res.json();
-      importResults.textContent = `Done! ${data.imported} imported, ${data.skipped} skipped (duplicate IDs).`;
-      importResults.style.color = 'var(--success, green)';
+      importResults.textContent = `${data.imported} imported, ${data.skipped} skipped (duplicate IDs).`;
+      showToast(`Imported ${data.imported} members successfully!`, 'success');
 
       // Reset file input
       importFile.value = '';
@@ -460,8 +532,8 @@ if (importBtn) {
       // Refresh member list
       loadMembers();
     } catch (err) {
-      importResults.textContent = 'Error: ' + err.message;
-      importResults.style.color = 'var(--danger, red)';
+      importResults.textContent = '';
+      showToast('Import failed: ' + err.message, 'error');
     } finally {
       importBtn.disabled = false;
       importBtn.textContent = 'Import Excel';
