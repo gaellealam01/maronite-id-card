@@ -295,8 +295,7 @@ async function loadMembers() {
           await renderBackCard(backC);
 
           const filename = `${member.first_name}-${member.last_name}`.toLowerCase();
-          downloadCanvas(frontC, `${filename}-front.png`);
-          setTimeout(() => downloadCanvas(backC, `${filename}-back.png`), 300);
+          downloadCombinedCard(frontC, backC, `${filename}-card.png`);
         } catch (err) {
           alert('Failed to download card: ' + err.message);
         } finally {
@@ -471,9 +470,19 @@ if (importBtn) {
 }
 
 // ─── DOWNLOAD CARDS AS IMAGES ───────────────────
+function downloadCombinedCard(frontC, backC, filename) {
+  const gap = 20;
+  const combined = document.createElement('canvas');
+  combined.width = frontC.width + gap + backC.width;
+  combined.height = Math.max(frontC.height, backC.height);
+  const ctx = combined.getContext('2d');
+  ctx.drawImage(frontC, 0, 0);
+  ctx.drawImage(backC, frontC.width + gap, 0);
+  downloadCanvas(combined, filename);
+}
+
 downloadBtn.addEventListener('click', () => {
-  downloadCanvas(frontCanvas, 'id-card-front.png');
-  setTimeout(() => downloadCanvas(backCanvas, 'id-card-back.png'), 300);
+  downloadCombinedCard(frontCanvas, backCanvas, 'id-card.png');
 });
 
 // ─── UTILITIES ──────────────────────────────────
