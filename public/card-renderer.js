@@ -12,14 +12,14 @@ const FRONT_CONFIG = {
   },
   name: {
     x: 50,
-    y: 70,
-    fontSize: 40,
+    y: 69,
+    fontSize: 45,
     color: '#c9a84c',
   },
   idNumber: {
     x: 50,
-    y: 79,
-    fontSize: 40,
+    y: 78,
+    fontSize: 45,
     color: '#c9a84c',
     letterSpacing: 1,
   }
