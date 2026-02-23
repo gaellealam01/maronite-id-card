@@ -575,6 +575,68 @@ exportBtn.addEventListener('click', async () => {
   }
 });
 
+// ─── ADMIN: DOWNLOAD ALL CARDS ───────────────────
+const downloadAllBtn = document.getElementById('download-all-cards-btn');
+if (downloadAllBtn) {
+  downloadAllBtn.addEventListener('click', async () => {
+    downloadAllBtn.disabled = true;
+    downloadAllBtn.querySelector('svg').style.display = 'none';
+    const originalText = downloadAllBtn.textContent.trim();
+
+    try {
+      // Fetch all members with photo data
+      const res = await fetch('/api/members', {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      if (!res.ok) throw new Error('Failed to load members');
+      const members = await res.json();
+
+      if (members.length === 0) {
+        showToast('No members to download cards for.', 'info');
+        return;
+      }
+
+      for (let i = 0; i < members.length; i++) {
+        const member = members[i];
+        downloadAllBtn.textContent = `Generating ${i + 1}/${members.length}...`;
+
+        // Fetch full member data (with photo)
+        const memberRes = await fetch(`/api/members/${member.id}`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!memberRes.ok) continue;
+        const fullMember = await memberRes.json();
+
+        const frontC = document.createElement('canvas');
+        const backC = document.createElement('canvas');
+
+        await renderFrontCard(frontC, {
+          photoSrc: fullMember.photo_data || null,
+          name: `${fullMember.first_name} ${fullMember.last_name}`,
+          idNumber: fullMember.id_number
+        });
+        await renderBackCard(backC);
+
+        const filename = `${fullMember.first_name}-${fullMember.last_name}`.toLowerCase();
+        downloadCombinedCard(frontC, backC, `${filename}-card.png`);
+
+        // Small delay between downloads so the browser doesn't block them
+        if (i < members.length - 1) {
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+
+      showToast(`Downloaded ${members.length} cards!`, 'success');
+    } catch (err) {
+      showToast('Failed to download cards: ' + err.message, 'error');
+    } finally {
+      downloadAllBtn.disabled = false;
+      downloadAllBtn.textContent = '';
+      downloadAllBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 21V3"/><path d="M16 21V3"/></svg> Download All Cards`;
+    }
+  });
+}
+
 // ─── ADMIN: IMPORT EXCEL ─────────────────────────
 const importSection = document.getElementById('import-section');
 const showImportBtn = document.getElementById('show-import-btn');
