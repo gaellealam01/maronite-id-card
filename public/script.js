@@ -576,10 +576,31 @@ exportBtn.addEventListener('click', async () => {
 });
 
 // ─── ADMIN: IMPORT EXCEL ─────────────────────────
+const importSection = document.getElementById('import-section');
+const showImportBtn = document.getElementById('show-import-btn');
+const cancelImport = document.getElementById('cancel-import');
 const importFile = document.getElementById('import-file');
 const importBtn = document.getElementById('import-btn');
 const importFilename = document.getElementById('import-filename');
 const importResults = document.getElementById('import-results');
+
+if (showImportBtn) {
+  showImportBtn.addEventListener('click', () => {
+    importSection.style.display = 'block';
+    showImportBtn.style.display = 'none';
+  });
+}
+
+if (cancelImport) {
+  cancelImport.addEventListener('click', () => {
+    importSection.style.display = 'none';
+    showImportBtn.style.display = '';
+    importFile.value = '';
+    importFilename.textContent = 'No file selected';
+    importBtn.disabled = true;
+    importResults.textContent = '';
+  });
+}
 
 if (importFile) {
   importFile.addEventListener('change', () => {
@@ -618,12 +639,14 @@ if (importBtn) {
       }
 
       const data = await res.json();
-      importResults.textContent = `${data.imported} imported, ${data.skipped} skipped (duplicate IDs).`;
-      showToast(`Imported ${data.imported} members successfully!`, 'success');
+      showToast(`Imported ${data.imported} members, ${data.skipped} skipped (duplicate IDs).`, 'success');
 
-      // Reset file input
+      // Reset and hide import section
       importFile.value = '';
       importFilename.textContent = 'No file selected';
+      importResults.textContent = '';
+      importSection.style.display = 'none';
+      showImportBtn.style.display = '';
 
       // Refresh member list
       loadMembers();
