@@ -21,6 +21,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
+// Separate multer for Excel import (stores file in memory, not on disk)
+const memoryUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -165,6 +168,53 @@ app.get('/api/export', authMiddleware('admin'), async (req, res) => {
   } catch (err) {
     console.error('Error exporting:', err);
     res.status(500).json({ error: 'Failed to export data' });
+  }
+});
+
+// ─── EXCEL IMPORT (admin only) ────────────────────────
+app.post('/api/import', authMiddleware('admin'), memoryUpload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(req.file.buffer);
+
+    const worksheet = workbook.worksheets[0];
+    if (!worksheet) {
+      return res.status(400).json({ error: 'No worksheet found in the file' });
+    }
+
+    let imported = 0;
+    let skipped = 0;
+    const errors = [];
+
+    worksheet.eachRow((row, rowNumber) => {
+      // Skip header row
+      if (rowNumber === 1) return;
+
+      const firstName = String(row.getCell(1).value || '').trim();
+      const lastName = String(row.getCell(2).value || '').trim();
+      const idNumber = String(row.getCell(3).value || '').trim();
+
+      if (!firstName || !lastName || !idNumber) {
+        errors.push(`Row ${rowNumber}: missing data`);
+        return;
+      }
+
+      try {
+        db.createMemberWithId(firstName, lastName, idNumber);
+        imported++;
+      } catch (err) {
+        skipped++;
+      }
+    });
+
+    res.json({ imported, skipped, errors });
+  } catch (err) {
+    console.error('Error importing Excel:', err);
+    res.status(500).json({ error: 'Failed to import file' });
   }
 });
 

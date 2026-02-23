@@ -68,6 +68,22 @@ function getAllMembersForExport() {
 }
 
 /**
+ * Create a member with a specific ID number (for Excel import)
+ * Throws an error if the ID number already exists
+ */
+function createMemberWithId(firstName, lastName, idNumber, photoData) {
+  const existing = db.prepare('SELECT id FROM members WHERE id_number = ?').get(idNumber);
+  if (existing) {
+    throw new Error(`ID number ${idNumber} already exists`);
+  }
+  const stmt = db.prepare(`
+    INSERT INTO members (first_name, last_name, id_number, photo_data)
+    VALUES (?, ?, ?, ?)
+  `);
+  stmt.run(firstName, lastName, idNumber, photoData || null);
+}
+
+/**
  * Delete a member by ID
  */
 function deleteMember(id) {
@@ -76,6 +92,7 @@ function deleteMember(id) {
 
 module.exports = {
   createMember,
+  createMemberWithId,
   getAllMembers,
   getAllMembersForExport,
   deleteMember,

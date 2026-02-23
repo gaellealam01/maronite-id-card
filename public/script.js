@@ -369,6 +369,68 @@ async function uploadAsset(file, type) {
   }
 }
 
+// ─── ADMIN: IMPORT EXCEL ─────────────────────────
+const importFile = document.getElementById('import-file');
+const importBtn = document.getElementById('import-btn');
+const importFilename = document.getElementById('import-filename');
+const importResults = document.getElementById('import-results');
+
+if (importFile) {
+  importFile.addEventListener('change', () => {
+    if (importFile.files[0]) {
+      importFilename.textContent = importFile.files[0].name;
+      importBtn.disabled = false;
+    } else {
+      importFilename.textContent = 'No file selected';
+      importBtn.disabled = true;
+    }
+  });
+}
+
+if (importBtn) {
+  importBtn.addEventListener('click', async () => {
+    const file = importFile.files[0];
+    if (!file) return;
+
+    importBtn.disabled = true;
+    importBtn.textContent = 'Importing...';
+    importResults.textContent = '';
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/import', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}` },
+        body: formData
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Import failed');
+      }
+
+      const data = await res.json();
+      importResults.textContent = `Done! ${data.imported} imported, ${data.skipped} skipped (duplicate IDs).`;
+      importResults.style.color = 'var(--success, green)';
+
+      // Reset file input
+      importFile.value = '';
+      importFilename.textContent = 'No file selected';
+
+      // Refresh member list
+      loadMembers();
+    } catch (err) {
+      importResults.textContent = 'Error: ' + err.message;
+      importResults.style.color = 'var(--danger, red)';
+    } finally {
+      importBtn.disabled = false;
+      importBtn.textContent = 'Import Excel';
+    }
+  });
+}
+
 // ─── DOWNLOAD CARDS AS IMAGES ───────────────────
 downloadBtn.addEventListener('click', () => {
   downloadCanvas(frontCanvas, 'id-card-front.png');
