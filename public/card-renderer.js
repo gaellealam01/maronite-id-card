@@ -12,7 +12,7 @@ const FRONT_CONFIG = {
   },
   name: {
     x: 50,
-    y: 65,
+    y: 67,
     fontSize: 40,
     color: '#c9a84c',
   },
