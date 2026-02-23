@@ -145,14 +145,58 @@
     <!-- ═══ ADMIN TAB ═══ -->
     <div id="admin-panel" class="tab-panel">
       <div class="admin-layout">
+        <!-- Add Member Section -->
+        <div class="section-card" id="add-member-section" style="display:none;">
+          <h3 class="section-title">Add New Member</h3>
+          <form id="add-member-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="add-first-name">First Name</label>
+                <input type="text" id="add-first-name" placeholder="First Name" required>
+              </div>
+              <div class="form-group">
+                <label for="add-last-name">Last Name</label>
+                <input type="text" id="add-last-name" placeholder="Last Name" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Member Photo (optional)</label>
+              <div class="section-card-actions">
+                <input type="file" id="add-member-photo" accept="image/*" hidden>
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('add-member-photo').click()">
+                  Choose Photo
+                </button>
+                <span id="add-member-photo-name" class="file-label">No photo selected</span>
+              </div>
+            </div>
+            <div class="section-card-actions">
+              <button type="submit" class="btn btn-primary btn-sm" id="add-member-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add Member
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" id="cancel-add-member">Cancel</button>
+            </div>
+          </form>
+        </div>
+
         <div class="admin-header">
           <h2 class="section-title">Member Database</h2>
-          <button id="export-btn" class="btn btn-primary">
+          <div class="admin-header-actions">
+            <button id="show-add-member-btn" class="btn btn-outline btn-sm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Member
+            </button>
+            <button id="export-btn" class="btn btn-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
             Download Excel
           </button>
+          </div>
         </div>
         <div class="table-container">
           <table id="members-table">

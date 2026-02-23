@@ -110,19 +110,21 @@ function showApp() {
   loginScreen.classList.remove('active');
   appScreen.classList.add('active');
 
-  // Set role badge
   if (currentRole === 'admin') {
     roleBadge.textContent = 'Admin';
     roleBadge.className = 'badge badge-admin';
-    adminTab.style.display = 'flex';
+    // Admin: hide tabs, go straight to admin panel
+    tabsNav.style.display = 'none';
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('admin-panel').classList.add('active');
+    loadMembers();
   } else {
     roleBadge.textContent = 'Generator';
     roleBadge.className = 'badge badge-generator';
+    tabsNav.style.display = 'flex';
     adminTab.style.display = 'none';
+    switchTab('generator');
   }
-
-  // Show generator tab by default
-  switchTab('generator');
 }
 
 // Check for existing session on load
@@ -537,6 +539,95 @@ if (importBtn) {
     } finally {
       importBtn.disabled = false;
       importBtn.textContent = 'Import Excel';
+    }
+  });
+}
+
+// ─── ADMIN: ADD MEMBER ──────────────────────────
+const addMemberSection = document.getElementById('add-member-section');
+const showAddMemberBtn = document.getElementById('show-add-member-btn');
+const cancelAddMember = document.getElementById('cancel-add-member');
+const addMemberForm = document.getElementById('add-member-form');
+const addMemberPhoto = document.getElementById('add-member-photo');
+const addMemberPhotoName = document.getElementById('add-member-photo-name');
+let addMemberPhotoData = null;
+
+if (showAddMemberBtn) {
+  showAddMemberBtn.addEventListener('click', () => {
+    addMemberSection.style.display = 'block';
+    showAddMemberBtn.style.display = 'none';
+  });
+}
+
+if (cancelAddMember) {
+  cancelAddMember.addEventListener('click', () => {
+    addMemberSection.style.display = 'none';
+    showAddMemberBtn.style.display = '';
+    addMemberForm.reset();
+    addMemberPhotoData = null;
+    addMemberPhotoName.textContent = 'No photo selected';
+  });
+}
+
+if (addMemberPhoto) {
+  addMemberPhoto.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      addMemberPhotoName.textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = (event) => { addMemberPhotoData = event.target.result; };
+      reader.readAsDataURL(file);
+    } else {
+      addMemberPhotoName.textContent = 'No photo selected';
+      addMemberPhotoData = null;
+    }
+  });
+}
+
+if (addMemberForm) {
+  addMemberForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const firstName = document.getElementById('add-first-name').value.trim();
+    const lastName = document.getElementById('add-last-name').value.trim();
+
+    if (!firstName || !lastName) {
+      showToast('Please enter both first and last name.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('add-member-btn');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          photo_data: addMemberPhotoData
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to add member');
+      }
+
+      showToast(`${firstName} ${lastName} added successfully!`, 'success');
+      addMemberForm.reset();
+      addMemberPhotoData = null;
+      addMemberPhotoName.textContent = 'No photo selected';
+      addMemberSection.style.display = 'none';
+      showAddMemberBtn.style.display = '';
+      loadMembers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
     }
   });
 }
