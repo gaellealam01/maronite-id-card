@@ -286,3 +286,6 @@ app.listen(PORT, () => {
   console.log(`Generator password: ${GENERATOR_PASSWORD}`);
   console.log(`Admin password: ${ADMIN_PASSWORD}`);
 });
+
+// Export for Vercel serverless
+module.exports = app;
