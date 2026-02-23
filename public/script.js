@@ -279,15 +279,15 @@ async function loadMembers() {
       const date = new Date(member.created_at).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric'
       });
-      const photoBadge = member.has_photo
-        ? '<span class="badge-photo badge-photo--yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Photo</span>'
-        : '<span class="badge-photo badge-photo--no">No photo</span>';
+      const photoCell = member.photo_data
+        ? `<img src="${member.photo_data}" class="photo-thumb" alt="Photo">`
+        : '<svg class="photo-missing" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d00" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
       tr.innerHTML = `
         <td>${index + 1}</td>
         <td>${escapeHtml(member.first_name)}</td>
         <td>${escapeHtml(member.last_name)}</td>
         <td><strong>NB: ${escapeHtml(member.id_number)}</strong></td>
-        <td>${photoBadge}</td>
+        <td>${photoCell}</td>
         <td>${date}</td>
         <td>
           <div class="actions-cell">
@@ -431,55 +431,6 @@ exportBtn.addEventListener('click', async () => {
     if (svg) svg.style.display = '';
   }
 });
-
-// ─── ADMIN: ASSET UPLOAD ────────────────────────
-const logoUpload = document.getElementById('logo-upload');
-const qrUpload = document.getElementById('qr-upload');
-
-if (logoUpload) {
-  logoUpload.addEventListener('change', (e) => uploadAsset(e.target.files[0], 'logo'));
-}
-if (qrUpload) {
-  qrUpload.addEventListener('change', (e) => uploadAsset(e.target.files[0], 'qr-code'));
-}
-
-async function uploadAsset(file, type) {
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('file', file);
-
-  try {
-    const res = await fetch(`/api/upload/${type}`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${authToken}` },
-      body: formData
-    });
-
-    if (!res.ok) throw new Error('Upload failed');
-
-    const data = await res.json();
-    showToast(`${type === 'logo' ? 'Logo' : 'QR Code'} uploaded successfully!`, 'success');
-
-    // Update preview images
-    const timestamp = Date.now();
-    if (type === 'logo') {
-      document.getElementById('logo-preview').src = `assets/logo.png?t=${timestamp}`;
-      // Update all logo references on page
-      document.querySelectorAll('img[src*="logo"]').forEach(img => {
-        img.src = `assets/logo.png?t=${timestamp}`;
-        img.style.display = '';
-      });
-    } else {
-      document.getElementById('qr-preview').src = `assets/qr-code.png?t=${timestamp}`;
-      document.querySelectorAll('img[src*="qr-code"]').forEach(img => {
-        img.src = `assets/qr-code.png?t=${timestamp}`;
-      });
-    }
-  } catch (err) {
-    showToast('Failed to upload: ' + err.message, 'error');
-  }
-}
 
 // ─── ADMIN: IMPORT EXCEL ─────────────────────────
 const importFile = document.getElementById('import-file');

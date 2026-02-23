@@ -60,7 +60,7 @@ function createMember(firstName, lastName, photoData) {
  * Get all members (for admin view)
  */
 function getAllMembers() {
-  return db.prepare('SELECT id, first_name, last_name, id_number, created_at, CASE WHEN photo_data IS NOT NULL THEN 1 ELSE 0 END AS has_photo FROM members ORDER BY created_at DESC').all();
+  return db.prepare('SELECT id, first_name, last_name, id_number, photo_data, created_at FROM members ORDER BY created_at DESC').all();
 }
 
 /**

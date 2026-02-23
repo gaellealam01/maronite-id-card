@@ -539,26 +539,19 @@ tbody tr:last-child td {
   z-index: 10;
 }
 
-/* ─── PHOTO STATUS BADGE ─────────────────────── */
-.badge-photo {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+/* ─── PHOTO THUMBNAIL ────────────────────────── */
+.photo-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+  vertical-align: middle;
 }
 
-.badge-photo--yes {
-  background: var(--green-light);
-  color: #166534;
-}
-
-.badge-photo--no {
-  background: var(--gray-100);
-  color: var(--gray-500);
+.photo-missing {
+  vertical-align: middle;
+  opacity: 0.6;
 }
 
 .empty-state {
@@ -664,55 +657,6 @@ tbody tr:last-child td {
   to   { opacity: 0; transform: translateX(40px); }
 }
 
-/* ─── ASSET UPLOAD ─────────────────────────────── */
-.asset-upload-section {
-  margin-top: 24px;
-}
-
-.asset-upload-row {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.asset-upload-card {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  flex: 1;
-  min-width: 200px;
-  text-align: center;
-}
-
-.asset-upload-card label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--gray-700);
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.asset-preview {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 12px;
-  border: 1px solid var(--gray-200);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: var(--gray-50);
-}
-
-.asset-preview img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
 
 /* ═══════════════════════════════════════════════════
    PRINT STYLES
