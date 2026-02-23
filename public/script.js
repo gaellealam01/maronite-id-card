@@ -160,6 +160,153 @@ function switchTab(tabName) {
   }
 }
 
+// ─── PHOTO CROP MODAL ───────────────────────────
+const cropOverlay = document.getElementById('crop-overlay');
+const cropImage = document.getElementById('crop-image');
+const cropZoom = document.getElementById('crop-zoom');
+const cropPreviewEl = document.getElementById('crop-preview');
+const cropConfirmBtn = document.getElementById('crop-confirm');
+const cropCancelBtn = document.getElementById('crop-cancel');
+
+let cropCallback = null;
+let cropOffsetX = 0, cropOffsetY = 0;
+let cropDragging = false;
+let cropDragStartX = 0, cropDragStartY = 0;
+let cropStartOffsetX = 0, cropStartOffsetY = 0;
+
+function openCropModal(file, callback) {
+  cropCallback = callback;
+  cropZoom.value = 100;
+  cropOffsetX = 0;
+  cropOffsetY = 0;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      cropImage.src = img.src;
+      applyCropTransform(img);
+      cropOverlay.classList.remove('hidden');
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyCropTransform() {
+  const img = cropImage;
+  const zoom = cropZoom.value / 100;
+  const previewSize = 250;
+
+  // Scale image so shortest side fills the preview, then apply zoom
+  const aspect = img.naturalWidth / img.naturalHeight;
+  let w, h;
+  if (aspect > 1) {
+    h = previewSize * zoom;
+    w = h * aspect;
+  } else {
+    w = previewSize * zoom;
+    h = w / aspect;
+  }
+
+  img.style.width = w + 'px';
+  img.style.height = h + 'px';
+
+  // Clamp offsets so image can't leave the circle entirely
+  const maxX = (w - previewSize) / 2;
+  const maxY = (h - previewSize) / 2;
+  cropOffsetX = Math.max(-maxX, Math.min(maxX, cropOffsetX));
+  cropOffsetY = Math.max(-maxY, Math.min(maxY, cropOffsetY));
+
+  // Center image + apply drag offset
+  const left = (previewSize - w) / 2 + cropOffsetX;
+  const top = (previewSize - h) / 2 + cropOffsetY;
+  img.style.left = left + 'px';
+  img.style.top = top + 'px';
+}
+
+cropZoom.addEventListener('input', () => applyCropTransform());
+
+// Drag to reposition (mouse)
+cropPreviewEl.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  cropDragging = true;
+  cropDragStartX = e.clientX;
+  cropDragStartY = e.clientY;
+  cropStartOffsetX = cropOffsetX;
+  cropStartOffsetY = cropOffsetY;
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!cropDragging) return;
+  cropOffsetX = cropStartOffsetX + (e.clientX - cropDragStartX);
+  cropOffsetY = cropStartOffsetY + (e.clientY - cropDragStartY);
+  applyCropTransform();
+});
+
+document.addEventListener('mouseup', () => { cropDragging = false; });
+
+// Drag to reposition (touch)
+cropPreviewEl.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 1) return;
+  cropDragging = true;
+  cropDragStartX = e.touches[0].clientX;
+  cropDragStartY = e.touches[0].clientY;
+  cropStartOffsetX = cropOffsetX;
+  cropStartOffsetY = cropOffsetY;
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+  if (!cropDragging || e.touches.length !== 1) return;
+  cropOffsetX = cropStartOffsetX + (e.touches[0].clientX - cropDragStartX);
+  cropOffsetY = cropStartOffsetY + (e.touches[0].clientY - cropDragStartY);
+  applyCropTransform();
+}, { passive: true });
+
+document.addEventListener('touchend', () => { cropDragging = false; });
+
+// Confirm crop
+cropConfirmBtn.addEventListener('click', () => {
+  const size = 400;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  const img = cropImage;
+  const zoom = cropZoom.value / 100;
+  const previewSize = 250;
+
+  const aspect = img.naturalWidth / img.naturalHeight;
+  let w, h;
+  if (aspect > 1) {
+    h = previewSize * zoom;
+    w = h * aspect;
+  } else {
+    w = previewSize * zoom;
+    h = w / aspect;
+  }
+
+  const left = (previewSize - w) / 2 + cropOffsetX;
+  const top = (previewSize - h) / 2 + cropOffsetY;
+
+  // Scale from 250px preview to 400px output
+  const scale = size / previewSize;
+  ctx.drawImage(img, left * scale, top * scale, w * scale, h * scale);
+
+  const croppedBase64 = canvas.toDataURL('image/png');
+  cropOverlay.classList.add('hidden');
+
+  if (cropCallback) cropCallback(croppedBase64);
+  cropCallback = null;
+});
+
+// Cancel crop
+cropCancelBtn.addEventListener('click', () => {
+  cropOverlay.classList.add('hidden');
+  cropCallback = null;
+});
+
 // ─── PHOTO UPLOAD ───────────────────────────────
 photoUploadArea.addEventListener('click', () => {
   photoUpload.click();
@@ -169,14 +316,12 @@ photoUpload.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    currentPhotoData = event.target.result;
+  openCropModal(file, (croppedData) => {
+    currentPhotoData = croppedData;
     photoPreview.src = currentPhotoData;
     photoPreview.classList.remove('hidden');
     photoPlaceholder.classList.add('hidden');
-  };
-  reader.readAsDataURL(file);
+  });
 });
 
 // ─── CARD GENERATION ────────────────────────────
@@ -321,8 +466,7 @@ async function loadMembers() {
         if (!file) return;
         const id = e.target.dataset.id;
 
-        const reader = new FileReader();
-        reader.onload = async (event) => {
+        openCropModal(file, async (croppedData) => {
           try {
             const res = await fetch(`/api/members/${id}/photo`, {
               method: 'PUT',
@@ -330,7 +474,7 @@ async function loadMembers() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`
               },
-              body: JSON.stringify({ photo_data: event.target.result })
+              body: JSON.stringify({ photo_data: croppedData })
             });
             if (!res.ok) throw new Error('Upload failed');
             showToast('Photo uploaded successfully!', 'success');
@@ -338,8 +482,7 @@ async function loadMembers() {
           } catch (err) {
             showToast('Failed to upload photo: ' + err.message, 'error');
           }
-        };
-        reader.readAsDataURL(file);
+        });
       });
     });
 
@@ -525,9 +668,9 @@ if (addMemberPhoto) {
     const file = e.target.files[0];
     if (file) {
       addMemberPhotoName.textContent = file.name;
-      const reader = new FileReader();
-      reader.onload = (event) => { addMemberPhotoData = event.target.result; };
-      reader.readAsDataURL(file);
+      openCropModal(file, (croppedData) => {
+        addMemberPhotoData = croppedData;
+      });
     } else {
       addMemberPhotoName.textContent = 'No photo selected';
       addMemberPhotoData = null;

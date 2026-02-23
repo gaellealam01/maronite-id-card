@@ -601,6 +601,103 @@ tbody tr:last-child td {
   font-size: 13px;
 }
 
+/* ─── PHOTO CROP MODAL ────────────────────────── */
+.crop-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.crop-overlay.hidden {
+  display: none !important;
+}
+
+.crop-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.crop-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--navy);
+  margin-bottom: 20px;
+}
+
+.crop-preview {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 20px;
+  border: 3px solid var(--gold);
+  position: relative;
+  cursor: grab;
+  background: var(--gray-100);
+}
+
+.crop-preview:active {
+  cursor: grabbing;
+}
+
+.crop-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.crop-controls {
+  margin-bottom: 20px;
+}
+
+.crop-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  color: var(--gray-500);
+}
+
+.crop-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 180px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--gray-200);
+  outline: none;
+}
+
+.crop-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--navy);
+  cursor: pointer;
+  border: 2px solid var(--white);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.crop-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
 /* ─── TOAST NOTIFICATIONS ─────────────────────── */
 .toast-container {
   position: fixed;
