@@ -13,13 +13,13 @@ const FRONT_CONFIG = {
   name: {
     x: 50,
     y: 68,
-    fontSize: 10,
+    fontSize: 40,
     color: '#c9a84c',
   },
   idNumber: {
     x: 50,
     y: 79,
-    fontSize: 10,
+    fontSize: 40,
     color: '#c9a84c',
     letterSpacing: 3,
   }
