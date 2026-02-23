@@ -87,24 +87,26 @@ async function renderFrontCard(canvas, { photoSrc, name, idNumber }) {
   // 1. Draw Canva template
   ctx.drawImage(template, 0, 0);
 
-  // 2. Member photo with gold ring
-  const photo = photoSrc ? await loadImage(photoSrc) : null;
-  const p = FRONT_CONFIG.photo;
-  const cx = W * p.centerX / 100;
-  const cy = H * p.centerY / 100;
-  const r = H * p.radius / 100;
-  const ringW = H * p.ringWidth / 100;
+  // 2. Member photo with gold ring (skip entirely if no photo)
+  if (photoSrc) {
+    const photo = await loadImage(photoSrc);
+    const p = FRONT_CONFIG.photo;
+    const cx = W * p.centerX / 100;
+    const cy = H * p.centerY / 100;
+    const r = H * p.radius / 100;
+    const ringW = H * p.ringWidth / 100;
 
-  if (photo) {
-    drawCircleImage(ctx, photo, cx, cy, r);
+    if (photo) {
+      drawCircleImage(ctx, photo, cx, cy, r);
+    }
+
+    // Gold ring around photo
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + ringW / 2, 0, Math.PI * 2);
+    ctx.strokeStyle = p.ringColor;
+    ctx.lineWidth = ringW;
+    ctx.stroke();
   }
-
-  // Gold ring around photo
-  ctx.beginPath();
-  ctx.arc(cx, cy, r + ringW / 2, 0, Math.PI * 2);
-  ctx.strokeStyle = p.ringColor;
-  ctx.lineWidth = ringW;
-  ctx.stroke();
 
   // 3. Member name — gold, Helvetica bold
   const n = FRONT_CONFIG.name;

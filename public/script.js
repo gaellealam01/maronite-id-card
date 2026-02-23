@@ -262,9 +262,48 @@ async function loadMembers() {
         <td>${escapeHtml(member.last_name)}</td>
         <td><strong>NB: ${escapeHtml(member.id_number)}</strong></td>
         <td>${date}</td>
-        <td><button class="btn-delete" data-id="${member.id}" title="Remove member">✕</button></td>
+        <td>
+          <button class="btn-download-card" data-id="${member.id}" title="Download ID card">⬇</button>
+          <button class="btn-delete" data-id="${member.id}" title="Remove member">✕</button>
+        </td>
       `;
       membersTbody.appendChild(tr);
+    });
+
+    // Attach download card handlers
+    document.querySelectorAll('.btn-download-card').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.dataset.id;
+        e.target.disabled = true;
+        e.target.textContent = '...';
+
+        try {
+          const res = await fetch(`/api/members/${id}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          if (!res.ok) throw new Error('Failed to load member');
+          const member = await res.json();
+
+          const frontC = document.createElement('canvas');
+          const backC = document.createElement('canvas');
+
+          await renderFrontCard(frontC, {
+            photoSrc: member.photo_data || null,
+            name: `${member.first_name} ${member.last_name}`,
+            idNumber: member.id_number
+          });
+          await renderBackCard(backC);
+
+          const filename = `${member.first_name}-${member.last_name}`.toLowerCase();
+          downloadCanvas(frontC, `${filename}-front.png`);
+          setTimeout(() => downloadCanvas(backC, `${filename}-back.png`), 300);
+        } catch (err) {
+          alert('Failed to download card: ' + err.message);
+        } finally {
+          e.target.disabled = false;
+          e.target.textContent = '⬇';
+        }
+      });
     });
 
     // Attach delete handlers

@@ -84,6 +84,13 @@ function createMemberWithId(firstName, lastName, idNumber, photoData) {
 }
 
 /**
+ * Get a single member by database id (primary key)
+ */
+function getMemberById(id) {
+  return db.prepare('SELECT id, first_name, last_name, id_number, photo_data, created_at FROM members WHERE id = ?').get(id);
+}
+
+/**
  * Delete a member by ID
  */
 function deleteMember(id) {
@@ -95,6 +102,7 @@ module.exports = {
   createMemberWithId,
   getAllMembers,
   getAllMembersForExport,
+  getMemberById,
   deleteMember,
   generateUniqueId
 };

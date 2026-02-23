@@ -110,6 +110,20 @@ app.get('/api/members', authMiddleware('admin'), (req, res) => {
   }
 });
 
+// ─── GET SINGLE MEMBER ───────────────────────────────────
+app.get('/api/members/:id', authMiddleware('generator'), (req, res) => {
+  try {
+    const member = db.getMemberById(req.params.id);
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+    res.json(member);
+  } catch (err) {
+    console.error('Error fetching member:', err);
+    res.status(500).json({ error: 'Failed to fetch member' });
+  }
+});
+
 // ─── DELETE MEMBER ────────────────────────────────────────
 app.delete('/api/members/:id', authMiddleware('admin'), (req, res) => {
   try {
