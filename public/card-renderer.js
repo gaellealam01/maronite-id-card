@@ -8,11 +8,11 @@ const FRONT_CONFIG = {
     centerY: 35,
     radius: 23,       // bigger
     ringColor: '#c9a84c',
-    ringWidth: 1.5,   // % of card height
+    ringWidth: 0.7,   // % of card height
   },
   name: {
     x: 50,
-    y: 68,
+    y: 65,
     fontSize: 40,
     color: '#c9a84c',
   },
@@ -21,7 +21,7 @@ const FRONT_CONFIG = {
     y: 79,
     fontSize: 40,
     color: '#c9a84c',
-    letterSpacing: 3,
+    letterSpacing: 1,
   }
 };
 
