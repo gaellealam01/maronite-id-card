@@ -1,7 +1,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'maronite.db');
+// On Vercel, the filesystem is read-only except /tmp
+const dbPath = process.env.VERCEL
+  ? path.join('/tmp', 'maronite.db')
+  : path.join(__dirname, 'maronite.db');
 const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent access

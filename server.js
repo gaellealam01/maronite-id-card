@@ -36,20 +36,30 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Simple token-based auth (in-memory)
-const tokens = new Map();
+// Deterministic token auth (works across serverless instances)
+const crypto = require('crypto');
 
-function generateToken() {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+function makeToken(password, role) {
+  return crypto.createHash('sha256').update(role + ':' + password).digest('hex').slice(0, 32);
 }
+
+// Pre-compute valid tokens so every serverless instance knows them
+const ADMIN_TOKEN = makeToken(ADMIN_PASSWORD, 'admin');
+const GENERATOR_TOKEN = makeToken(GENERATOR_PASSWORD, 'generator');
 
 function authMiddleware(requiredRole) {
   return (req, res, next) => {
     const token = req.headers['authorization']?.replace('Bearer ', '');
-    if (!token || !tokens.has(token)) {
+    if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const role = tokens.get(token);
+    let role = null;
+    if (token === ADMIN_TOKEN) role = 'admin';
+    else if (token === GENERATOR_TOKEN) role = 'generator';
+
+    if (!role) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     if (requiredRole && role !== requiredRole && role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
@@ -63,23 +73,17 @@ app.post('/api/auth', (req, res) => {
   const { password } = req.body;
 
   if (password === ADMIN_PASSWORD) {
-    const token = generateToken();
-    tokens.set(token, 'admin');
-    return res.json({ role: 'admin', token });
+    return res.json({ role: 'admin', token: ADMIN_TOKEN });
   }
 
   if (password === GENERATOR_PASSWORD) {
-    const token = generateToken();
-    tokens.set(token, 'generator');
-    return res.json({ role: 'generator', token });
+    return res.json({ role: 'generator', token: GENERATOR_TOKEN });
   }
 
   return res.status(401).json({ error: 'Invalid password' });
 });
 
 app.post('/api/logout', (req, res) => {
-  const token = req.headers['authorization']?.replace('Bearer ', '');
-  if (token) tokens.delete(token);
   res.json({ success: true });
 });
 
