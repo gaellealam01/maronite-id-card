@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الرابطة المارونية — ID Card Generator</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ═══ LOGIN SCREEN ═══ -->
+  <div id="login-screen" class="screen active">
+    <div class="login-container">
+      <div class="login-logo">
+        <img src="assets/logo.png" alt="الرابطة المارونية" onerror="this.style.display='none'">
+        <h1 class="login-title">الرابطة المارونية</h1>
+        <p class="login-subtitle">Maronite League — ID Card System</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="password-input">Enter Password</label>
+          <input type="password" id="password-input" placeholder="Enter your password" required autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <span>Unlock</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </button>
+        <p id="login-error" class="error-msg hidden">Invalid password. Please try again.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN APP ═══ -->
+  <div id="app-screen" class="screen">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <img src="assets/logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+        <div>
+          <h1 class="header-title">الرابطة المارونية</h1>
+          <p class="header-subtitle">ID Card Generator</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <span id="role-badge" class="badge"></span>
+        <button id="logout-btn" class="btn btn-outline btn-sm">Logout</button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs" id="tabs-nav">
+      <button class="tab active" data-tab="generator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="12" y1="15" x2="12" y2="15.01"/>
+        </svg>
+        Generate ID Card
+      </button>
+      <button class="tab" data-tab="admin" id="admin-tab" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        Admin / Export
+      </button>
+    </nav>
+
+    <!-- ═══ GENERATOR TAB ═══ -->
+    <div id="generator-panel" class="tab-panel active">
+      <div class="generator-layout">
+        <!-- Form -->
+        <div class="form-card">
+          <h2 class="section-title">Member Information</h2>
+          <form id="id-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="first-name">First Name</label>
+                <input type="text" id="first-name" placeholder="First Name" required>
+              </div>
+              <div class="form-group">
+                <label for="last-name">Last Name</label>
+                <input type="text" id="last-name" placeholder="Last Name" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="photo-upload">Member Photo</label>
+              <div class="photo-upload-area" id="photo-upload-area">
+                <input type="file" id="photo-upload" accept="image/*" hidden>
+                <div id="photo-preview-container" class="photo-preview-container">
+                  <div id="photo-placeholder" class="photo-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span>Click to upload photo</span>
+                  </div>
+                  <img id="photo-preview" class="photo-preview hidden" alt="Preview">
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" id="generate-btn">
+              <span>Generate ID Card</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+
+        <!-- Card Preview -->
+        <div id="card-preview-area" class="card-preview-area hidden">
+          <h2 class="section-title">Card Preview</h2>
+
+          <div class="cards-container">
+            <canvas id="front-card-canvas" class="id-card-canvas" width="680" height="428"></canvas>
+            <canvas id="back-card-canvas" class="id-card-canvas" width="680" height="428"></canvas>
+          </div>
+
+          <div class="card-actions">
+            <button id="download-btn" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download Images
+            </button>
+            <button id="print-btn" class="btn btn-outline" onclick="window.print()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+              </svg>
+              Print Cards
+            </button>
+            <button id="new-card-btn" class="btn btn-outline">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              New Card
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ADMIN TAB ═══ -->
+    <div id="admin-panel" class="tab-panel">
+      <div class="admin-layout">
+        <div class="admin-header">
+          <h2 class="section-title">Member Database</h2>
+          <button id="export-btn" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download Excel
+          </button>
+        </div>
+        <div class="table-container">
+          <table id="members-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>ID Number</th>
+                <th>Date Created</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="members-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+          <p id="no-members" class="empty-state hidden">No members have been created yet.</p>
+        </div>
+
+        <!-- Asset Upload Section -->
+        <div class="asset-upload-section">
+          <h3 class="section-title" style="margin-top:32px;">Card Assets</h3>
+          <p style="color:var(--gray-500);font-size:13px;margin-bottom:16px;">Upload logo and QR code images for the ID cards.</p>
+          <div class="asset-upload-row">
+            <div class="asset-upload-card">
+              <label>Organization Logo</label>
+              <div class="asset-preview">
+                <img id="logo-preview" src="assets/logo.png" alt="Logo" onerror="this.style.display='none'">
+              </div>
+              <input type="file" id="logo-upload" accept="image/*" hidden>
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('logo-upload').click()">
+                Upload Logo
+              </button>
+            </div>
+            <div class="asset-upload-card">
+              <label>QR Code</label>
+              <div class="asset-preview">
+                <img id="qr-preview" src="assets/qr-code.png" alt="QR Code" onerror="this.style.display='none'">
+              </div>
+              <input type="file" id="qr-upload" accept="image/*" hidden>
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('qr-upload').click()">
+                Upload QR Code
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="card-renderer.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

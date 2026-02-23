@@ -1,0 +1,628 @@
+/* ═══════════════════════════════════════════════════
+   MARONITE LEAGUE ID CARD GENERATOR — STYLES
+   ═══════════════════════════════════════════════════ */
+
+/* ─── RESET & BASE ─────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --navy: #0a1a3a;
+  --navy-light: #122a54;
+  --navy-card: #0d2364;
+  --gold: #c9a84c;
+  --gold-light: #e0c975;
+  --gold-dark: #a88a30;
+  --gold-gradient: linear-gradient(135deg, #e0c975, #c9a84c, #a88a30, #c9a84c, #e0c975);
+  --white: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  --red: #ef4444;
+  --font-arabic: 'Amiri', serif;
+  --font-display: 'Cormorant Garamond', 'Playfair Display', serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+
+  --card-width: 340px;
+  --card-height: 214px;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  min-height: 100vh;
+}
+
+/* ─── UTILITY ──────────────────────────────────── */
+.hidden { display: none !important; }
+.screen { display: none !important; }
+.screen.active { display: block !important; }
+
+/* ─── LOGIN SCREEN ─────────────────────────────── */
+#login-screen.active {
+  display: flex !important;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--navy) 0%, #1a2f5a 50%, var(--navy) 100%);
+  padding: 20px;
+}
+
+.login-container {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.login-logo img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+.login-title {
+  font-family: var(--font-arabic);
+  font-size: 28px;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 32px;
+}
+
+.login-form {
+  text-align: left;
+}
+
+/* ─── FORMS ────────────────────────────────────── */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: var(--font-body);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ─── BUTTONS ──────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--navy-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 26, 58, 0.3);
+}
+
+.btn-outline {
+  background: var(--white);
+  color: var(--navy);
+  border-color: var(--gray-300);
+}
+
+.btn-outline:hover {
+  border-color: var(--navy);
+  background: var(--gray-50);
+}
+
+.btn-sm {
+  padding: 6px 16px;
+  font-size: 13px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.error-msg {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* ─── APP HEADER ───────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.header-title {
+  font-family: var(--font-arabic);
+  font-size: 20px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-generator {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-admin {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ─── TABS ─────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 0;
+  background: var(--white);
+  border-bottom: 2px solid var(--gray-200);
+  padding: 0 32px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+  font-family: var(--font-body);
+}
+
+.tab:hover {
+  color: var(--gray-700);
+}
+
+.tab.active {
+  color: var(--navy);
+  border-bottom-color: var(--gold);
+}
+
+.tab-panel {
+  display: none;
+  padding: 32px;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* ─── GENERATOR LAYOUT ─────────────────────────── */
+.generator-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.form-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--navy);
+  margin-bottom: 24px;
+}
+
+/* ─── PHOTO UPLOAD ─────────────────────────────── */
+.photo-upload-area {
+  cursor: pointer;
+}
+
+.photo-preview-container {
+  border: 2px dashed var(--gray-300);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.photo-preview-container:hover {
+  border-color: var(--gold);
+  background: rgba(201, 168, 76, 0.03);
+}
+
+.photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--gray-500);
+}
+
+.photo-placeholder svg {
+  opacity: 0.5;
+}
+
+.photo-preview {
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--gold);
+}
+
+/* ═══════════════════════════════════════════════════
+   ID CARD DESIGN (Canvas-based)
+   Cards are drawn with the Canvas API in card-renderer.js.
+   This CSS just styles the canvas elements themselves.
+   ═══════════════════════════════════════════════════ */
+
+.card-preview-area {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.cards-container {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.id-card-canvas {
+  width: var(--card-width);
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+/* ─── CARD ACTIONS ─────────────────────────────── */
+.card-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════
+   ADMIN PANEL
+   ═══════════════════════════════════════════════════ */
+
+.admin-layout {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.table-container {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--navy);
+}
+
+th {
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--white);
+}
+
+td {
+  padding: 12px 20px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+tbody tr:hover {
+  background: var(--gray-50);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.btn-delete {
+  background: none;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+
+.btn-delete:hover {
+  background: var(--red);
+  color: var(--white);
+}
+
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 15px;
+}
+
+/* ─── ASSET UPLOAD ─────────────────────────────── */
+.asset-upload-section {
+  margin-top: 24px;
+}
+
+.asset-upload-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.asset-upload-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+}
+
+.asset-upload-card label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.asset-preview {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--gray-50);
+}
+
+.asset-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ═══════════════════════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════════════════════ */
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body {
+    background: white !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  #login-screen,
+  .app-header,
+  .tabs,
+  .form-card,
+  .section-title,
+  .card-actions,
+  #admin-panel {
+    display: none !important;
+  }
+
+  #app-screen {
+    display: block !important;
+  }
+
+  #generator-panel {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .card-preview-area {
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: none !important;
+  }
+
+  .card-preview-area .section-title {
+    display: none !important;
+  }
+
+  .cards-container {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center;
+    align-items: center;
+    gap: 10mm;
+  }
+
+  .id-card-canvas {
+    width: 85.6mm;
+    height: 53.98mm;
+    box-shadow: none !important;
+    border: 0.5px solid #ccc;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    flex-shrink: 0;
+    border-radius: 3mm;
+  }
+
+  .card-preview-area.hidden {
+    display: block !important;
+  }
+
+  @page {
+    margin: 10mm;
+    size: auto;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .tab-panel {
+    padding: 20px 16px;
+  }
+
+  .tabs {
+    padding: 0 16px;
+  }
+
+  .tab {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,5 @@
+node_modules/
+.env
+maronite.db
+maronite.db-shm
+maronite.db-wal

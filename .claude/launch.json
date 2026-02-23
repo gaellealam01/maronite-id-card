@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "maronite-id",
+      "runtimeExecutable": "/Users/gaelle/.local/node-v20.11.1-darwin-arm64/bin/node",
+      "runtimeArgs": ["server.js"],
+      "port": 3000
+    }
+  ]
+}

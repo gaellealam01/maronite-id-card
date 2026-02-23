@@ -1,0 +1,205 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const express = require('express');
+const fs = require('fs');
+const ExcelJS = require('exceljs');
+const multer = require('multer');
+const db = require('./database');
+
+// Multer setup for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const assetsDir = path.join(__dirname, 'public', 'assets');
+    if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir, { recursive: true });
+    cb(null, assetsDir);
+  },
+  filename: (req, file, cb) => {
+    // Always save as .png to match HTML references
+    const type = req.params.type; // 'logo' or 'qr-code'
+    cb(null, type + '.png');
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Passwords from environment
+const GENERATOR_PASSWORD = process.env.GENERATOR_PASSWORD || 'maronite2024';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin2024';
+
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Simple token-based auth (in-memory)
+const tokens = new Map();
+
+function generateToken() {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+function authMiddleware(requiredRole) {
+  return (req, res, next) => {
+    const token = req.headers['authorization']?.replace('Bearer ', '');
+    if (!token || !tokens.has(token)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const role = tokens.get(token);
+    if (requiredRole && role !== requiredRole && role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    req.role = role;
+    next();
+  };
+}
+
+// ─── AUTH ─────────────────────────────────────────────
+app.post('/api/auth', (req, res) => {
+  const { password } = req.body;
+
+  if (password === ADMIN_PASSWORD) {
+    const token = generateToken();
+    tokens.set(token, 'admin');
+    return res.json({ role: 'admin', token });
+  }
+
+  if (password === GENERATOR_PASSWORD) {
+    const token = generateToken();
+    tokens.set(token, 'generator');
+    return res.json({ role: 'generator', token });
+  }
+
+  return res.status(401).json({ error: 'Invalid password' });
+});
+
+app.post('/api/logout', (req, res) => {
+  const token = req.headers['authorization']?.replace('Bearer ', '');
+  if (token) tokens.delete(token);
+  res.json({ success: true });
+});
+
+// ─── MEMBERS ──────────────────────────────────────────
+app.post('/api/members', authMiddleware('generator'), (req, res) => {
+  try {
+    const { first_name, last_name, photo_data } = req.body;
+
+    if (!first_name || !last_name) {
+      return res.status(400).json({ error: 'First name and last name are required' });
+    }
+
+    const member = db.createMember(first_name, last_name, photo_data || null);
+    res.json(member);
+  } catch (err) {
+    console.error('Error creating member:', err);
+    res.status(500).json({ error: 'Failed to create member' });
+  }
+});
+
+app.get('/api/members', authMiddleware('admin'), (req, res) => {
+  try {
+    const members = db.getAllMembers();
+    res.json(members);
+  } catch (err) {
+    console.error('Error fetching members:', err);
+    res.status(500).json({ error: 'Failed to fetch members' });
+  }
+});
+
+// ─── DELETE MEMBER ────────────────────────────────────────
+app.delete('/api/members/:id', authMiddleware('admin'), (req, res) => {
+  try {
+    db.deleteMember(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting member:', err);
+    res.status(500).json({ error: 'Failed to delete member' });
+  }
+});
+
+// ─── EXCEL EXPORT ─────────────────────────────────────
+app.get('/api/export', authMiddleware('admin'), async (req, res) => {
+  try {
+    const members = db.getAllMembersForExport();
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Maronite League ID System';
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet('Members');
+
+    // Define columns
+    worksheet.columns = [
+      { header: 'First Name', key: 'first_name', width: 20 },
+      { header: 'Last Name', key: 'last_name', width: 20 },
+      { header: 'ID Number', key: 'id_number', width: 15 },
+      { header: 'Date Created', key: 'created_at', width: 25 }
+    ];
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true, size: 12 };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF0A1A3A' }
+    };
+    worksheet.getRow(1).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+
+    // Add data rows
+    members.forEach(member => {
+      worksheet.addRow({
+        first_name: member.first_name,
+        last_name: member.last_name,
+        id_number: member.id_number,
+        created_at: member.created_at
+      });
+    });
+
+    // Set response headers for download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=maronite_members.xlsx');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error exporting:', err);
+    res.status(500).json({ error: 'Failed to export data' });
+  }
+});
+
+// ─── ASSET UPLOAD (admin only) ────────────────────────
+app.post('/api/upload/:type', authMiddleware('admin'), upload.single('file'), async (req, res) => {
+  const validTypes = ['logo', 'qr-code'];
+  if (!validTypes.includes(req.params.type)) {
+    return res.status(400).json({ error: 'Invalid asset type' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  // If uploading logo, try to run the background removal script
+  if (req.params.type === 'logo') {
+    const inputPath = req.file.path;
+    const outputPath = path.join(__dirname, 'public', 'assets', 'logo.png');
+    try {
+      const { execSync } = require('child_process');
+      execSync(`python3 "${path.join(__dirname, 'process-logo.py')}" "${inputPath}" "${outputPath}"`, {
+        timeout: 15000
+      });
+      console.log('Logo processed: white background removed');
+    } catch (err) {
+      console.log('Logo processing skipped (using original):', err.message);
+      // File is already saved as logo.png by multer, so nothing else needed
+    }
+  }
+
+  res.json({ success: true, filename: req.file.filename, path: `/assets/${req.file.filename}` });
+});
+
+// ─── START SERVER ─────────────────────────────────────
+app.listen(PORT, () => {
+  console.log(`Maronite ID Generator running at http://localhost:${PORT}`);
+  console.log(`Generator password: ${GENERATOR_PASSWORD}`);
+  console.log(`Admin password: ${ADMIN_PASSWORD}`);
+});
