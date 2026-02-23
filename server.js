@@ -88,7 +88,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ─── MEMBERS ──────────────────────────────────────────
-app.post('/api/members', authMiddleware('generator'), (req, res) => {
+app.post('/api/members', authMiddleware('generator'), async (req, res) => {
   try {
     const { first_name, last_name, photo_data, id_number } = req.body;
 
@@ -98,10 +98,10 @@ app.post('/api/members', authMiddleware('generator'), (req, res) => {
 
     let member;
     if (id_number) {
-      db.createMemberWithId(first_name, last_name, id_number, photo_data || null);
+      await db.createMemberWithId(first_name, last_name, id_number, photo_data || null);
       member = { first_name, last_name, id_number, photo_data: photo_data || null, created_at: new Date().toISOString() };
     } else {
-      member = db.createMember(first_name, last_name, photo_data || null);
+      member = await db.createMember(first_name, last_name, photo_data || null);
     }
     res.json(member);
   } catch (err) {
@@ -113,9 +113,9 @@ app.post('/api/members', authMiddleware('generator'), (req, res) => {
   }
 });
 
-app.get('/api/members', authMiddleware('admin'), (req, res) => {
+app.get('/api/members', authMiddleware('admin'), async (req, res) => {
   try {
-    const members = db.getAllMembers();
+    const members = await db.getAllMembers();
     res.json(members);
   } catch (err) {
     console.error('Error fetching members:', err);
@@ -124,9 +124,9 @@ app.get('/api/members', authMiddleware('admin'), (req, res) => {
 });
 
 // ─── GET SINGLE MEMBER ───────────────────────────────────
-app.get('/api/members/:id', authMiddleware('generator'), (req, res) => {
+app.get('/api/members/:id', authMiddleware('generator'), async (req, res) => {
   try {
-    const member = db.getMemberById(req.params.id);
+    const member = await db.getMemberById(req.params.id);
     if (!member) {
       return res.status(404).json({ error: 'Member not found' });
     }
@@ -138,14 +138,14 @@ app.get('/api/members/:id', authMiddleware('generator'), (req, res) => {
 });
 
 // ─── UPDATE MEMBER PHOTO ─────────────────────────────────
-app.put('/api/members/:id/photo', authMiddleware('admin'), (req, res) => {
+app.put('/api/members/:id/photo', authMiddleware('admin'), async (req, res) => {
   try {
     const { photo_data } = req.body;
     if (!photo_data) {
       return res.status(400).json({ error: 'Photo data is required' });
     }
-    db.updateMemberPhoto(req.params.id, photo_data);
-    const member = db.getMemberById(req.params.id);
+    await db.updateMemberPhoto(req.params.id, photo_data);
+    const member = await db.getMemberById(req.params.id);
     if (!member) {
       return res.status(404).json({ error: 'Member not found' });
     }
@@ -157,9 +157,9 @@ app.put('/api/members/:id/photo', authMiddleware('admin'), (req, res) => {
 });
 
 // ─── DELETE MEMBER ────────────────────────────────────────
-app.delete('/api/members/:id', authMiddleware('admin'), (req, res) => {
+app.delete('/api/members/:id', authMiddleware('admin'), async (req, res) => {
   try {
-    db.deleteMember(req.params.id);
+    await db.deleteMember(req.params.id);
     res.json({ success: true });
   } catch (err) {
     console.error('Error deleting member:', err);
@@ -170,7 +170,7 @@ app.delete('/api/members/:id', authMiddleware('admin'), (req, res) => {
 // ─── EXCEL EXPORT ─────────────────────────────────────
 app.get('/api/export', authMiddleware('admin'), async (req, res) => {
   try {
-    const members = db.getAllMembersForExport();
+    const members = await db.getAllMembersForExport();
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Maronite League ID System';
@@ -236,26 +236,30 @@ app.post('/api/import', authMiddleware('admin'), memoryUpload.single('file'), as
     let skipped = 0;
     const errors = [];
 
+    const rows = [];
     worksheet.eachRow((row, rowNumber) => {
-      // Skip header row
       if (rowNumber === 1) return;
+      rows.push({
+        firstName: String(row.getCell(1).value || '').trim(),
+        lastName: String(row.getCell(2).value || '').trim(),
+        idNumber: String(row.getCell(3).value || '').trim(),
+        rowNumber
+      });
+    });
 
-      const firstName = String(row.getCell(1).value || '').trim();
-      const lastName = String(row.getCell(2).value || '').trim();
-      const idNumber = String(row.getCell(3).value || '').trim();
-
-      if (!firstName || !lastName || !idNumber) {
-        errors.push(`Row ${rowNumber}: missing data`);
-        return;
+    for (const row of rows) {
+      if (!row.firstName || !row.lastName || !row.idNumber) {
+        errors.push(`Row ${row.rowNumber}: missing data`);
+        continue;
       }
 
       try {
-        db.createMemberWithId(firstName, lastName, idNumber);
+        await db.createMemberWithId(row.firstName, row.lastName, row.idNumber);
         imported++;
       } catch (err) {
         skipped++;
       }
-    });
+    }
 
     res.json({ imported, skipped, errors });
   } catch (err) {
