@@ -90,16 +90,25 @@ app.post('/api/logout', (req, res) => {
 // ─── MEMBERS ──────────────────────────────────────────
 app.post('/api/members', authMiddleware('generator'), (req, res) => {
   try {
-    const { first_name, last_name, photo_data } = req.body;
+    const { first_name, last_name, photo_data, id_number } = req.body;
 
     if (!first_name || !last_name) {
       return res.status(400).json({ error: 'First name and last name are required' });
     }
 
-    const member = db.createMember(first_name, last_name, photo_data || null);
+    let member;
+    if (id_number) {
+      db.createMemberWithId(first_name, last_name, id_number, photo_data || null);
+      member = { first_name, last_name, id_number, photo_data: photo_data || null, created_at: new Date().toISOString() };
+    } else {
+      member = db.createMember(first_name, last_name, photo_data || null);
+    }
     res.json(member);
   } catch (err) {
     console.error('Error creating member:', err);
+    if (err.message && err.message.includes('already exists')) {
+      return res.status(400).json({ error: 'That ID number is already taken' });
+    }
     res.status(500).json({ error: 'Failed to create member' });
   }
 });

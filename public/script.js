@@ -768,6 +768,7 @@ if (addMemberForm) {
     e.preventDefault();
     const firstName = document.getElementById('add-first-name').value.trim();
     const lastName = document.getElementById('add-last-name').value.trim();
+    const idNumber = document.getElementById('add-id-number').value.trim();
 
     if (!firstName || !lastName) {
       showToast('Please enter both first and last name.', 'error');
@@ -778,17 +779,20 @@ if (addMemberForm) {
     btn.disabled = true;
 
     try {
+      const payload = {
+        first_name: firstName,
+        last_name: lastName,
+        photo_data: addMemberPhotoData
+      };
+      if (idNumber) payload.id_number = idNumber;
+
       const res = await fetch('/api/members', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          photo_data: addMemberPhotoData
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
