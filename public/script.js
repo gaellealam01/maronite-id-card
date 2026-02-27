@@ -881,6 +881,19 @@ downloadBtn.addEventListener('click', () => {
   downloadCombinedCard(frontCanvas, backCanvas, 'id-card.png');
 });
 
+// ─── MEMBER FILTER ──────────────────────────────
+document.getElementById('member-filter').addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase().trim();
+  const rows = document.querySelectorAll('#members-tbody tr');
+  rows.forEach(row => {
+    const idNum = row.children[0].textContent.toLowerCase();
+    const firstName = row.children[1].textContent.toLowerCase();
+    const lastName = row.children[2].textContent.toLowerCase();
+    const match = idNum.includes(query) || firstName.includes(query) || lastName.includes(query);
+    row.style.display = match ? '' : 'none';
+  });
+});
+
 // ─── CARD PREVIEW MODAL ─────────────────────────
 document.getElementById('preview-close-btn').addEventListener('click', () => {
   document.getElementById('preview-overlay').classList.add('hidden');
