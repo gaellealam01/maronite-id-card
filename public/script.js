@@ -421,19 +421,14 @@ async function loadMembers() {
 
     members.forEach((member, index) => {
       const tr = document.createElement('tr');
-      const date = new Date(member.created_at).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-      });
       const photoCell = member.photo_data
         ? `<img src="${member.photo_data}" class="photo-thumb" alt="Photo">`
         : '<svg class="photo-missing" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d00" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
       tr.innerHTML = `
-        <td>${index + 1}</td>
+        <td><strong>${escapeHtml(member.id_number)}</strong></td>
         <td>${escapeHtml(member.first_name)}</td>
         <td>${escapeHtml(member.last_name)}</td>
-        <td><strong>NB: ${escapeHtml(member.id_number)}</strong></td>
         <td>${photoCell}</td>
-        <td>${date}</td>
         <td>
           <div class="actions-cell">
             <button class="action-btn action-btn--primary btn-download-card" data-id="${member.id}" data-tooltip="Download card">
@@ -580,7 +575,7 @@ async function loadMembers() {
     document.querySelectorAll('.btn-delete').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
-        const name = btn.closest('tr').children[1].textContent + ' ' + btn.closest('tr').children[2].textContent;
+        const name = btn.closest('tr').children[1].textContent + ' ' + btn.closest('tr').children[2].textContent; // First Name + Last Name
         if (!confirm(`Remove ${name} from the list?`)) return;
         try {
           const res = await fetch(`/api/members/${id}`, {
