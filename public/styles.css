@@ -425,12 +425,14 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--gray-200);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 700px;
 }
 
 thead {
@@ -446,6 +448,7 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--gray-500);
+  white-space: nowrap;
 }
 
 td {
@@ -453,6 +456,7 @@ td {
   font-size: 13px;
   border-bottom: 1px solid var(--gray-100);
   color: var(--gray-700);
+  white-space: nowrap;
 }
 
 tbody tr:nth-child(even) {
