@@ -432,7 +432,7 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 550px;
+  table-layout: fixed;
 }
 
 thead {
@@ -450,6 +450,13 @@ th {
   color: var(--gray-500);
   white-space: nowrap;
 }
+
+/* Column widths: ID Number | First Name | Last Name | Photo | Actions */
+th:nth-child(1), td:nth-child(1) { width: 15%; }
+th:nth-child(2), td:nth-child(2) { width: 25%; }
+th:nth-child(3), td:nth-child(3) { width: 25%; }
+th:nth-child(4), td:nth-child(4) { width: 10%; }
+th:nth-child(5), td:nth-child(5) { width: 25%; }
 
 td {
   padding: 14px 20px;
