@@ -453,10 +453,10 @@ th {
 
 /* Column widths: ID Number | First Name | Last Name | Photo | Actions */
 th:nth-child(1), td:nth-child(1) { width: 15%; }
-th:nth-child(2), td:nth-child(2) { width: 25%; }
-th:nth-child(3), td:nth-child(3) { width: 25%; }
-th:nth-child(4), td:nth-child(4) { width: 10%; }
-th:nth-child(5), td:nth-child(5) { width: 25%; }
+th:nth-child(2), td:nth-child(2) { width: 18%; }
+th:nth-child(3), td:nth-child(3) { width: 18%; }
+th:nth-child(4), td:nth-child(4) { width: 12%; }
+th:nth-child(5), td:nth-child(5) { width: 37%; }
 
 td {
   padding: 14px 20px;
@@ -565,8 +565,8 @@ tbody tr:last-child td {
 
 /* ─── PHOTO THUMBNAIL ────────────────────────── */
 .photo-thumb {
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--gold);
