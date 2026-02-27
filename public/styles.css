@@ -503,6 +503,19 @@ tbody tr:last-child td {
   pointer-events: none;
 }
 
+.action-btn.action-btn--primary {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--white);
+}
+
+.action-btn.action-btn--primary:hover {
+  background: var(--navy-light);
+  border-color: var(--navy-light);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(10, 26, 58, 0.3);
+}
+
 .action-btn.action-btn--danger:hover {
   border-color: var(--red);
   color: var(--red);
@@ -696,6 +709,31 @@ tbody tr:last-child td {
   display: flex;
   gap: 12px;
   justify-content: center;
+}
+
+/* ─── CARD PREVIEW MODAL ─────────────────────── */
+.preview-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  width: 100%;
+  max-width: 780px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.preview-cards {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.preview-cards .id-card-canvas {
+  width: 320px;
 }
 
 /* ─── TOAST NOTIFICATIONS ─────────────────────── */

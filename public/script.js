@@ -436,14 +436,17 @@ async function loadMembers() {
         <td>${date}</td>
         <td>
           <div class="actions-cell">
+            <button class="action-btn action-btn--primary btn-download-card" data-id="${member.id}" data-tooltip="Download card">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button class="action-btn btn-preview-card" data-id="${member.id}" data-tooltip="Preview card">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
             <button class="action-btn btn-edit" data-id="${member.id}" data-first="${escapeHtml(member.first_name)}" data-last="${escapeHtml(member.last_name)}" data-idnum="${escapeHtml(member.id_number)}" data-tooltip="Edit member">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
             <button class="action-btn btn-upload-photo" data-id="${member.id}" data-tooltip="Upload photo">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            </button>
-            <button class="action-btn btn-download-card" data-id="${member.id}" data-tooltip="Download card">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
             <button class="action-btn action-btn--danger btn-delete" data-id="${member.id}" data-tooltip="Delete member">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
@@ -528,6 +531,44 @@ async function loadMembers() {
           downloadCombinedCard(frontC, backC, `${filename}-card.png`);
         } catch (err) {
           showToast('Failed to download card: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.style.opacity = '';
+        }
+      });
+    });
+
+    // Attach preview card handlers
+    document.querySelectorAll('.btn-preview-card').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+
+        try {
+          const res = await fetch(`/api/members/${id}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          if (!res.ok) throw new Error('Failed to load member');
+          const member = await res.json();
+
+          const frontC = document.getElementById('preview-front-canvas');
+          const backC = document.getElementById('preview-back-canvas');
+
+          await renderFrontCard(frontC, {
+            photoSrc: member.photo_data || null,
+            name: `${member.first_name} ${member.last_name}`,
+            idNumber: member.id_number
+          });
+          await renderBackCard(backC);
+
+          // Store member info for the download button inside the preview
+          document.getElementById('preview-download-btn').dataset.id = id;
+          document.getElementById('preview-download-btn').dataset.name = `${member.first_name}-${member.last_name}`.toLowerCase();
+
+          document.getElementById('preview-overlay').classList.remove('hidden');
+        } catch (err) {
+          showToast('Failed to preview card: ' + err.message, 'error');
         } finally {
           btn.disabled = false;
           btn.style.opacity = '';
@@ -843,6 +884,19 @@ function downloadCombinedCard(frontC, backC, filename) {
 
 downloadBtn.addEventListener('click', () => {
   downloadCombinedCard(frontCanvas, backCanvas, 'id-card.png');
+});
+
+// ─── CARD PREVIEW MODAL ─────────────────────────
+document.getElementById('preview-close-btn').addEventListener('click', () => {
+  document.getElementById('preview-overlay').classList.add('hidden');
+});
+
+document.getElementById('preview-download-btn').addEventListener('click', () => {
+  const frontC = document.getElementById('preview-front-canvas');
+  const backC = document.getElementById('preview-back-canvas');
+  const btn = document.getElementById('preview-download-btn');
+  const filename = `${btn.dataset.name}-card.png`;
+  downloadCombinedCard(frontC, backC, filename);
 });
 
 // ─── EDIT MEMBER MODAL ──────────────────────────
