@@ -256,6 +256,32 @@
     </div>
   </div>
 
+  <!-- ═══ EDIT MEMBER MODAL ═══ -->
+  <div id="edit-overlay" class="crop-overlay hidden">
+    <div class="crop-modal">
+      <h3 class="crop-title">Edit Member</h3>
+      <form id="edit-member-form">
+        <input type="hidden" id="edit-member-id">
+        <div class="form-group">
+          <label for="edit-first-name">First Name</label>
+          <input type="text" id="edit-first-name" placeholder="First Name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-last-name">Last Name</label>
+          <input type="text" id="edit-last-name" placeholder="Last Name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-id-number">ID Number</label>
+          <input type="text" id="edit-id-number" placeholder="e.g. 12345" required>
+        </div>
+        <div class="crop-actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" id="edit-cancel" class="btn btn-outline">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ═══ PHOTO CROP MODAL ═══ -->
   <div id="crop-overlay" class="crop-overlay hidden">
     <div class="crop-modal">

@@ -137,6 +137,24 @@ app.get('/api/members/:id', authMiddleware('generator'), async (req, res) => {
   }
 });
 
+// ─── UPDATE MEMBER INFO ──────────────────────────────────
+app.put('/api/members/:id', authMiddleware('admin'), async (req, res) => {
+  try {
+    const { first_name, last_name, id_number } = req.body;
+    if (!first_name && !last_name && !id_number) {
+      return res.status(400).json({ error: 'Nothing to update' });
+    }
+    const member = await db.updateMember(req.params.id, first_name, last_name, id_number);
+    res.json(member);
+  } catch (err) {
+    console.error('Error updating member:', err);
+    if (err.message && err.message.includes('already exists')) {
+      return res.status(400).json({ error: 'That ID number is already taken' });
+    }
+    res.status(500).json({ error: 'Failed to update member' });
+  }
+});
+
 // ─── UPDATE MEMBER PHOTO ─────────────────────────────────
 app.put('/api/members/:id/photo', authMiddleware('admin'), async (req, res) => {
   try {

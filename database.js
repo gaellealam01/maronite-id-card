@@ -114,6 +114,40 @@ async function getMemberById(id) {
 }
 
 /**
+ * Update a member's info (name and/or ID number)
+ */
+async function updateMember(id, firstName, lastName, idNumber) {
+  // If changing ID number, check it's not taken by another member
+  if (idNumber) {
+    const { data: existing } = await supabase
+      .from('members')
+      .select('id')
+      .eq('id_number', idNumber)
+      .neq('id', id)
+      .single();
+
+    if (existing) {
+      throw new Error(`ID number ${idNumber} already exists`);
+    }
+  }
+
+  const updates = {};
+  if (firstName) updates.first_name = firstName;
+  if (lastName) updates.last_name = lastName;
+  if (idNumber) updates.id_number = idNumber;
+
+  const { data, error } = await supabase
+    .from('members')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/**
  * Delete a member by ID
  */
 async function deleteMember(id) {
@@ -131,6 +165,7 @@ module.exports = {
   getAllMembers,
   getAllMembersForExport,
   getMemberById,
+  updateMember,
   updateMemberPhoto,
   deleteMember,
   generateUniqueId

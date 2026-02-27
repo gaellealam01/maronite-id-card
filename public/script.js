@@ -436,6 +436,9 @@ async function loadMembers() {
         <td>${date}</td>
         <td>
           <div class="actions-cell">
+            <button class="action-btn btn-edit" data-id="${member.id}" data-first="${escapeHtml(member.first_name)}" data-last="${escapeHtml(member.last_name)}" data-idnum="${escapeHtml(member.id_number)}" data-tooltip="Edit member">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
             <button class="action-btn btn-upload-photo" data-id="${member.id}" data-tooltip="Upload photo">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </button>
@@ -450,6 +453,17 @@ async function loadMembers() {
         </td>
       `;
       membersTbody.appendChild(tr);
+    });
+
+    // Attach edit handlers
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('edit-member-id').value = btn.dataset.id;
+        document.getElementById('edit-first-name').value = btn.dataset.first;
+        document.getElementById('edit-last-name').value = btn.dataset.last;
+        document.getElementById('edit-id-number').value = btn.dataset.idnum;
+        document.getElementById('edit-overlay').classList.remove('hidden');
+      });
     });
 
     // Attach upload photo handlers
@@ -829,6 +843,46 @@ function downloadCombinedCard(frontC, backC, filename) {
 
 downloadBtn.addEventListener('click', () => {
   downloadCombinedCard(frontCanvas, backCanvas, 'id-card.png');
+});
+
+// ─── EDIT MEMBER MODAL ──────────────────────────
+document.getElementById('edit-cancel').addEventListener('click', () => {
+  document.getElementById('edit-overlay').classList.add('hidden');
+});
+
+document.getElementById('edit-member-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('edit-member-id').value;
+  const firstName = document.getElementById('edit-first-name').value.trim();
+  const lastName = document.getElementById('edit-last-name').value.trim();
+  const idNumber = document.getElementById('edit-id-number').value.trim();
+
+  if (!firstName || !lastName || !idNumber) {
+    showToast('All fields are required.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/members/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ first_name: firstName, last_name: lastName, id_number: idNumber })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to update');
+    }
+
+    showToast('Member updated!', 'success');
+    document.getElementById('edit-overlay').classList.add('hidden');
+    loadMembers();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 });
 
 // ─── UTILITIES ──────────────────────────────────
